@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>律動MV撥放回報表</title>
+    <title>律動MV撥放回報表-門市</title>
     <style>
         :root {
             --primary-color: #769f9f; /* 調深後的莫蘭迪綠 */
@@ -219,7 +219,7 @@
 
 <div class="container" id="top">
     <header>
-        <h1>律動MV撥放回報表</h1>
+        <h1>律動MV撥放回報表-門市</h1>
         <p id="today-date"></p>
     </header>
 
@@ -303,8 +303,8 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
-    // 監聽雲端資料庫
-    const docRef = doc(db, "playback_logs", today);
+   // 監聽雲端資料庫（修改為新部門專用的路徑名稱）
+const docRef = doc(db, "playback_logs_dept2", today);
     let currentLogs = {};
 
     onSnapshot(docRef, (docSnap) => {
@@ -377,8 +377,8 @@
 
     // 匯出 Excel (使用專業套件，產生標準 .xlsx)
     window.exportExcel = async function() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "playback_logs"));
+    try {
+        const querySnapshot = await getDocs(collection(db, "playback_logs_dept2"));
             let allRecords = [];
 
             querySnapshot.forEach((doc) => {
