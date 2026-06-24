@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律動MV撥放回報表</title>
+    <style>
+        :root {
+            --primary-color: #769f9f; /* 調深後的莫蘭迪綠 */
+            --secondary-color: #fdfaf6; /* 溫暖的米白色背景 */
+            --accent-color: #d1b8b6; /* 調深後的粉藕色 */
+            --text-color: #333333; /* 調深後的文字顏色 */
+            --bg-color: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.03);
+            --border-radius: 24px;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: var(--bg-color);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 500;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        #today-date {
+            font-weight: 400;
+            color: #777777;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #f0f0f0;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #fafafa;
+            border-radius: 20px;
+        }
+
+        select, button {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            outline: none;
+        }
+
+        select {
+            background: white;
+            color: var(--text-color);
+            border: 1px solid #eeeeee;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-am { background-color: #dcedc1; color: #2d5a4a; }
+        .btn-pm { background-color: #ffd3b6; color: #8a5a44; }
+        .btn-export { background-color: var(--primary-color); color: white; flex: 2; }
+        .btn-reset { background-color: #f5f5f5; color: #888888; flex: 1; }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-top: 20px;
+        }
+
+        th {
+            padding: 15px;
+            text-align: center;
+            color: #666666;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 20px 15px;
+            text-align: center;
+            background: #ffffff;
+            border-top: 1px solid #f9f9f9;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        td:first-child {
+            border-left: 1px solid #f9f9f9;
+            border-radius: 15px 0 0 15px;
+            font-weight: 600;
+        }
+
+        td:last-child {
+            border-right: 1px solid #f9f9f9;
+            border-radius: 0 15px 15px 0;
+        }
+
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .status-done { background: #e8f6ef; color: #2d5a4a; }
+        .status-none { background: #fcfcfc; color: #888888; border: 1px dashed #cccccc; }
+
+        .btn-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 20px;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+
+        .btn-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: #999999;
+            margin-top: 40px;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="top">
+    <header>
+        <h1>律動MV撥放回報表</h1>
+        <p id="today-date"></p>
+    </header>
+
+    <div class="video-container">
+        <iframe src="https://www.youtube.com/embed/IbiQpSCSz7I" allowfullscreen></iframe>
+    </div>
+
+    <div class="control-panel">
+        <select id="member-select">
+            <option value="" disabled selected>請選擇您的姓名</option>
+            <option value="淑芬">淑芬</option>
+            <option value="妙妤">妙妤</option>
+            <option value="渝珍">渝珍</option>
+            <option value="宥緁">宥緁</option>
+            <option value="安媞">安媞</option>
+            <option value="宜庭">宜庭</option>
+        </select>
+        <div class="btn-group">
+            <button class="btn-am" onclick="report('上午')">上午回報</button>
+            <button class="btn-pm" onclick="report('下午')">下午回報</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>上午狀態</th>
+                <th>下午狀態</th>
+            </tr>
+        </thead>
+        <tbody id="status-table-body">
+            <!-- JS 插入內容 -->
+        </tbody>
+    </table>
+
+    <div class="action-row">
+        <button class="btn-export" onclick="exportExcel()">下載完整報表 (Excel)</button>
+        <button class="btn-reset" onclick="resetLogs()">清除紀錄</button>
+    </div>
+
+    <div class="footer-note">
+        輕輕地聽，慢慢地做。
+    </div>
+</div>
+
+<button class="btn-top" id="back-to-top" onclick="scrollToTop()">↑</button>
+
+<!-- 引入 Excel 產生套件 (支援樣式) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+<!-- 引入 Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-DweTEptyq2rhqA9HJwxLrG_20VEeRqY",
+      authDomain: "mv-playback-tracker.firebaseapp.com",
+      projectId: "mv-playback-tracker",
+      storageBucket: "mv-playback-tracker.firebasestorage.app",
+      messagingSenderId: "796999777225",
+      appId: "1:796999777225:web:4d442fe8598d47151d8618",
+      measurementId: "G-RDVV36VQSE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const members = ["淑芬", "妙妤", "渝珍", "宥緁", "安媞", "宜庭"];
+    const today = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
+    
+    // 初始化日期與時間更新
+    function updateDateTime() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('today-date').innerText = `${dateStr} ${timeStr}`;
+    }
+    
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // 監聽雲端資料庫
+    const docRef = doc(db, "playback_logs", today);
+    let currentLogs = {};
+
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            currentLogs = docSnap.data().records || {};
+        } else {
+            currentLogs = {};
+        }
+        renderTable(currentLogs);
+    });
+
+    function renderTable(records) {
+        const tbody = document.getElementById('status-table-body');
+        tbody.innerHTML = '';
+
+        members.forEach(name => {
+            const record = records[name] || {};
+            const amStatus = record.am ? `<span class="status-badge status-done">已完成 ${record.am}</span>` : '<span class="status-badge status-none">等待中</span>';
+            const pmStatus = record.pm ? `<span class="status-badge status-done">已完成 ${record.pm}</span>` : '<span class="status-badge status-none">等待中</span>';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${name}</td>
+                <td>${amStatus}</td>
+                <td>${pmStatus}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 回報功能
+    window.report = async function(type) {
+        const name = document.getElementById('member-select').value;
+        if (!name) {
+            alert('請先選擇您的名字喔。');
+            return;
+        }
+
+        const now = new Date().toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        
+        const newRecords = { ...currentLogs };
+        if (!newRecords[name]) newRecords[name] = {};
+
+        if (type === '上午') {
+            if (newRecords[name].am && !confirm('已經回報過上午了，要更新時間嗎？')) return;
+            newRecords[name].am = now;
+        } else {
+            if (newRecords[name].pm && !confirm('已經回報過下午了，要更新時間嗎？')) return;
+            newRecords[name].pm = now;
+        }
+
+        try {
+            await setDoc(docRef, { records: newRecords });
+        } catch (e) {
+            console.error("Error updating document: ", e);
+            alert("雲端儲存失敗，請檢查網路連接。");
+        }
+    }
+
+    // 清除紀錄
+    window.resetLogs = async function() {
+        if (confirm('確定要清除今日的所有回報紀錄嗎？所有同仁的畫面都會被清空。')) {
+            try {
+                await setDoc(docRef, { records: {} });
+            } catch (e) {
+                console.error("Error resetting document: ", e);
+            }
+        }
+    }
+
+    // 匯出 Excel (使用專業套件，產生標準 .xlsx)
+    window.exportExcel = async function() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "playback_logs"));
+            let allRecords = [];
+
+            querySnapshot.forEach((doc) => {
+                const date = doc.id;
+                const data = doc.data().records || {};
+                for (const name in data) {
+                    const record = data[name];
+                    if (record.am) allRecords.push({ date: date.replace(/-/g, '/'), name: name, period: '上午', time: record.am });
+                    if (record.pm) allRecords.push({ date: date.replace(/-/g, '/'), name: name, period: '下午', time: record.pm });
+                }
+            });
+
+            // 按照日期順序排列 (由舊到新)
+            allRecords.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                if (dateA - dateB !== 0) return dateA - dateB;
+                if (a.period !== b.period) return a.period === '上午' ? -1 : 1;
+                return a.name.localeCompare(b.name, 'zh-Hant');
+            });
+
+            // 準備 Excel 資料矩陣
+            const headerRow = ["日期", "姓名", "時段", "時間"];
+            const dataRows = allRecords.map(r => [r.date, r.name, r.period, r.time]);
+            
+            // 建立工作表內容 (含空出一行放標題)
+            const wsData = [
+                ["律動MV播放歷史紀錄彙整表", "", "", ""], // A1 (標題)
+                headerRow,                             // A2 (表頭)
+                ...dataRows                           // A3 開始 (資料)
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // 定義樣式
+            const styleTitle = {
+                font: { bold: true, sz: 16 },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+
+            const styleHeader = {
+                font: { bold: true, color: { rgb: "000000" } },
+                fill: { fgColor: { rgb: "D9EAD3" } }, // 淡綠色
+                alignment: { horizontal: "center", vertical: "center" },
+                border: {
+                    top: { style: "thin" }, bottom: { style: "thin" },
+                    left: { style: "thin" }, right: { style: "thin" }
+                }
+            };
+
+            const styleData = {
+                alignment: { horizontal: "center", vertical: "center" },
+                border: {
+                    top: { style: "thin" }, bottom: { style: "thin" },
+                    left: { style: "thin" }, right: { style: "thin" }
+                }
+            };
+
+            // 套用樣式與合併儲存格
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }]; // 合併第一行的 A1~D1
+            ws['A1'].s = styleTitle;
+
+            // 遍歷所有儲存格套用框線與對齊
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellRef]) continue;
+
+                    if (R === 0) {
+                        ws[cellRef].s = styleTitle;
+                    } else if (R === 1) {
+                        ws[cellRef].s = styleHeader;
+                    } else {
+                        ws[cellRef].s = styleData;
+                    }
+                }
+            }
+
+            // 設定欄寬
+            ws['!cols'] = [
+                { wch: 15 }, // 日期
+                { wch: 12 }, // 姓名
+                { wch: 10 }, // 時段
+                { wch: 10 }  // 時間
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "播放紀錄");
+
+            // 產生檔案並下載 (.xlsx)
+            const exportDate = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `MV播放完整紀錄_${exportDate}.xlsx`);
+
+        } catch (e) {
+            console.error("Error exporting Excel: ", e);
+            alert("匯出失敗，請稍後再試。");
+        }
+    }
+
+    // 置頂按鈕邏輯
+    window.onscroll = function() {
+        const btn = document.getElementById("back-to-top");
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            btn.classList.add("show");
+        } else {
+            btn.classList.remove("show");
+        }
+    };
+
+    window.scrollToTop = function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
