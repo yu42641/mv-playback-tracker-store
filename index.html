@@ -252,8 +252,7 @@
             </tr>
         </thead>
         <tbody id="status-table-body">
-            <!-- JS 插入內容 -->
-        </tbody>
+            </tbody>
     </table>
 
     <div class="action-row">
@@ -268,22 +267,22 @@
 
 <button class="btn-top" id="back-to-top" onclick="scrollToTop()">↑</button>
 
-<!-- 引入 Excel 產生套件 (支援樣式) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-<!-- 引入 Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
+    // 已根據圖片成功更新為新的專案金鑰
     const firebaseConfig = {
-      apiKey: "AIzaSyA-DweTEptyq2rhqA9HJwxLrG_20VEeRqY",
-      authDomain: "mv-playback-tracker.firebaseapp.com",
-      projectId: "mv-playback-tracker",
-      storageBucket: "mv-playback-tracker.firebasestorage.app",
-      messagingSenderId: "796999777225",
-      appId: "1:796999777225:web:4d442fe8598d47151d8618",
-      measurementId: "G-RDVV36VQSE"
+      apiKey: "AIzaSyBZpuvgENWKEuEMRGBVlfA2MzLbwH-i668",
+      authDomain: "mv-playback-tracker-store.firebaseapp.com",
+      databaseURL: "https://mv-playback-tracker-store-default-rtdb.firebaseio.com",
+      projectId: "mv-playback-tracker-store",
+      storageBucket: "mv-playback-tracker-store.firebasestorage.app",
+      messagingSenderId: "281899944559",
+      appId: "1:281899944559:web:5b8ebebbf17df3ded41b9a",
+      measurementId: "G-ZNC8TE07SW"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -303,8 +302,8 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
-   // 監聽雲端資料庫（修改為新部門專用的路徑名稱）
-const docRef = doc(db, "playback_logs_dept2", today);
+    // 監聽雲端資料庫
+    const docRef = doc(db, "playback_logs_dept2", today);
     let currentLogs = {};
 
     onSnapshot(docRef, (docSnap) => {
